@@ -205,6 +205,7 @@ class NearbySessionController(context: Context) {
     // --- SDK operation wrappers ---
 
     fun startAdvertising(name: String, allowUpgrade: Boolean = true) {
+        onAdvertisingStartRequested()
         val options = AdvertisingOptions.Builder()
             .setStrategy(Strategy.P2P_STAR)
             .setConnectionType(if (allowUpgrade) ConnectionType.DISRUPTIVE else ConnectionType.NON_DISRUPTIVE)
@@ -220,6 +221,7 @@ class NearbySessionController(context: Context) {
     }
 
     fun startDiscovery() {
+        onDiscoveryStartRequested()
         val options = DiscoveryOptions.Builder().setStrategy(Strategy.P2P_STAR).build()
         connectionsClient.startDiscovery(serviceId, endpointDiscoveryCallback, options)
             .addOnSuccessListener { onDiscoveryStarted() }
@@ -328,28 +330,51 @@ class NearbySessionController(context: Context) {
         updateStatus()
     }
 
+    internal fun onAdvertisingStartRequested() {
+        _state.update { it.copy(isStartingAdvertising = true) }
+        updateStatus()
+    }
+
     fun onAdvertisingStarted() {
-        _state.update { it.copy(isAdvertising = true) }
+        _state.update { it.copy(isAdvertising = true, isStartingAdvertising = false) }
         updateStatus()
     }
 
     fun onAdvertisingStopped() {
-        _state.update { it.copy(isAdvertising = false) }
+        _state.update { it.copy(isAdvertising = false, isStartingAdvertising = false) }
+        updateStatus()
+    }
+
+    internal fun onDiscoveryStartRequested() {
+        _state.update { it.copy(isStartingDiscovery = true) }
         updateStatus()
     }
 
     fun onDiscoveryStarted() {
-        _state.update { it.copy(isDiscovering = true) }
+        _state.update { it.copy(isDiscovering = true, isStartingDiscovery = false) }
         updateStatus()
     }
 
     fun onDiscoveryStopped() {
-        _state.update { it.copy(isDiscovering = false, discoveredEndpoints = emptyList()) }
+        _state.update {
+            it.copy(
+                isDiscovering = false,
+                isStartingDiscovery = false,
+                discoveredEndpoints = emptyList()
+            )
+        }
         updateStatus()
     }
 
     fun onOperationError(prefix: String, exception: Exception) {
-        _state.update { it.copy(lastError = NearbyError.fromNearbyException(prefix, exception).displayMessage) }
+        _state.update {
+            val updated = it.copy(lastError = NearbyError.fromNearbyException(prefix, exception).displayMessage)
+            when (prefix) {
+                "启动广播失败" -> updated.copy(isStartingAdvertising = false)
+                "扫描失败" -> updated.copy(isStartingDiscovery = false)
+                else -> updated
+            }
+        }
         updateStatus()
     }
 

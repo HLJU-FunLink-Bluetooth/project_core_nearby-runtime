@@ -9,6 +9,8 @@ data class NearbySessionState(
     val role: ConnectionRole = ConnectionRole.HOST,
     val isAdvertising: Boolean = false,
     val isDiscovering: Boolean = false,
+    val isStartingAdvertising: Boolean = false,
+    val isStartingDiscovery: Boolean = false,
     val connectedEndpoints: Set<NearbyEndpointInfo> = emptySet(),
     val discoveredEndpoints: List<NearbyEndpointInfo> = emptyList(),
     val pendingConnections: List<PendingConnectionInfo> = emptyList(),
