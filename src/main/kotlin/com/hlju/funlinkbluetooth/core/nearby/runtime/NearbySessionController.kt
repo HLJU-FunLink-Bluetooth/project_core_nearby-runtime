@@ -8,7 +8,6 @@ import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback
 import com.google.android.gms.nearby.connection.ConnectionResolution
 import com.google.android.gms.nearby.connection.ConnectionType
 import com.google.android.gms.nearby.connection.ConnectionsClient
-import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo
 import com.google.android.gms.nearby.connection.DiscoveryOptions
 import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback
@@ -45,8 +44,6 @@ class NearbySessionController(context: Context) {
 
     private val _state = MutableStateFlow(NearbySessionState())
     val state: StateFlow<NearbySessionState> = _state.asStateFlow()
-
-    val currentQuality: Int get() = _state.value.currentQuality
 
     // Callbacks for the host to delegate events — set once by app module
     var onMessageReceived: ((endpointId: String, bytes: ByteArray) -> Unit)? = null
@@ -380,11 +377,6 @@ class NearbySessionController(context: Context) {
 
     fun onValidationError(message: String) {
         _state.update { it.copy(lastError = message) }
-        updateStatus()
-    }
-
-    fun clearLastError() {
-        _state.update { it.copy(lastError = null) }
         updateStatus()
     }
 
