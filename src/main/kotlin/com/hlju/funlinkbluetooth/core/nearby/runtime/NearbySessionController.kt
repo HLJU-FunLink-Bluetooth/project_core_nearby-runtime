@@ -32,7 +32,9 @@ import java.util.UUID
 
 class NearbySessionController(context: Context) {
 
-    private val connectionsClient: ConnectionsClient = Nearby.getConnectionsClient(context)
+    private val connectionsClient: ConnectionsClient by lazy {
+        Nearby.getConnectionsClient(context)
+    }
     private val serviceId: String = context.packageName
 
     private val deviceId = UUID.randomUUID().toString().take(8)
